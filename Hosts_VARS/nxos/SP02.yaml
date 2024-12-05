@@ -1,0 +1,63 @@
+---
+
+device_type: "spine"
+
+interfaces:
+    - name: lo0 #Used for OSPF RID
+      ip: 10.102.1.1
+      mask: 255.255.255.255
+      int_type: "loopback"
+      ospf_area: 0
+    #- name: lo1 #Used for Multicast RP Physical Address
+    #  ip: 10.2.1.2
+    #  mask: 255.255.255.255
+    #  int_type: "loopback"
+    #  ospf_area: 0
+    #- name: lo2 #Used for Anycast RP Address, must be same on all RP devices
+    #  ip: 10.10.10.10
+    #  mask: 255.255.255.255
+    #  int_type: "loopback"
+    #  ospf_area: 0
+    - name: Eth1/1 # To Leaf-01
+      ip: 172.1.102.102
+      mask: 255.255.255.0
+      int_type: "layer3"
+      ospf_area: 0
+    - name: Eth1/2 # To Leaf-02
+      ip: 172.2.102.102
+      mask: 255.255.255.0
+      int_type: "layer3"
+      ospf_area: 0
+    - name: Eth1/3 # To Leaf-03
+      ip: 172.3.102.102
+      mask: 255.255.255.0
+      int_type: "layer3"
+      ospf_area: 0
+    - name: Eth1/4 # To Leaf-04
+      ip: 172.4.102.102
+      mask: 255.255.255.0
+      int_type: "layer3"
+      ospf_area: 0
+    
+ospf:
+    rid: 10.102.1.1
+    proc_id: 127
+bgp:
+    localAsn: 100
+    routerId: 10.102.1.1
+    update_source: loopback0
+    route_reflector: True
+    peer_group_name: "MyPeerGroup"
+    neighbors:
+        - address: 10.1.1.1 #Leaf1
+          type: "iBGP"
+          remoteAsn: 100 
+        - address: 10.2.1.1 #Leaf2
+          type: "iBGP"
+          remoteAsn: 100
+        - address: 10.3.1.1 #Leaf2
+          type: "iBGP"
+          remoteAsn: 100 
+        - address: 10.4.1.1 #Leaf4
+          type: "iBGP"
+          remoteAsn: 100

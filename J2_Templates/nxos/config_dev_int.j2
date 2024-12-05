@@ -1,0 +1,65 @@
+{# NXOS Devices Interface Level Configuration Template #}
+{% for int in host.dev_vars.interfaces %}
+{% set int_name = int.name %}
+{% set int_ip = int.ip %}
+{% set int_mask = int.mask %}
+{% set ospf_area = int.ospf_area %}
+{% set int_type = int.int_type %}
+interface {{ int_name }}
+{% if int_type ==  "layer3"%}
+no switchport
+{% endif %}
+{% if int_type ==  "layer3" or int_type == "loopback" %}
+ip address {{ int_ip }} {{ int_mask }}
+ip router ospf {{ host.dev_vars.ospf.proc_id }} area  {{ ospf_area }}
+no shut
+{% elif int_type ==  "access" %}
+switchport
+switchport mode access
+switchport access vlan {{ int.vlan_id }} 
+no shut
+{% elif int_type ==  "trunk-1" %}
+switchport
+switchport mode trunk
+switchport trunk allowed vlan {{ int.allowed_vlan }} 
+no shut
+{#The NVE interface is the VTEP. There is only one of these per switch.#}
+{#  It uses the loopback interface to get its IP address.#}
+{% elif int_type ==  "vtep" %}
+source-interface {{ int.vtep_src }}
+{# It enables BGP control plane learning. If this isn’t enabled, then we’re using flood and learn.#}
+host-reachability protocol bgp
+{# L2VNI then needs to be added to the VTEP.#}
+{# This is also where we enable ARP Suppression, and configure ingress replication.#}
+{% for vlan in host.dev_vars.vlans %}
+{% if vlan.vni %}
+member vni {{ vlan.vni_id }}
+suppress-arp
+ingress-replication protocol bgp
+{# Finally, associate the VNI with the tenant’s L3VNI/VRF to enable IRB.#}
+{% for vrf in host.dev_vars.vrfs %}
+{% if vrf.name == vlan.tenant_name %}
+member vni {{ vrf.l3_vni_id }} associate-vrf
+{# {% break %} #}
+{% endif %}
+{% endfor %}
+exit
+{% endif %}
+{% endfor %}
+no shut
+{% endif %}
+{% endfor %}
+{# SVI will be create only at Leaf devices where we have created L2/L3 VLANs and VNIs#}
+{% if host.dev_vars.device_type == "leaf" %}
+{# Each VNI that needs to be routable needs to have an SVI in the tenant’s VRF.#}
+{# This SVI is given the same IP address on each switch, which enables Anycast Gateway.#}
+{% for vlan in host.dev_vars.vlans %}
+{% if vlan.vni %}
+interface vlan {{ vlan.vlan_id }}
+vrf member {{ vlan.tenant_name }}
+ip address {{ vlan.anycast_gw_ip }}/{{ vlan.anycast_gw_mask }}
+fabric forwarding mode anycast-gateway
+no shutdown
+{% endif %}
+{% endfor %}
+{% endif %}

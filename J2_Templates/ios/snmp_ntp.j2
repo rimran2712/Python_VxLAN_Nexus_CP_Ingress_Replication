@@ -1,0 +1,16 @@
+{# IOS Configiguration Template #}
+
+{# SNMP Template Configuration #}
+snmp-server community {{ host['snmp']['snmp_community'] }} ro
+snmp-server location {{ host['snmp']['snmp_location'] }}
+snmp-server contact {{ host['snmp']['snmp_contact'] }}
+snmp-server enable traps
+snmp-server host {{ host['snmp']['snmp_server'] }} version 2c {{ host['snmp']['snmp_community'] }} 
+
+{# NTP Template Configuration #}
+ip domain-lookup
+{% for ns in host['nameservers'] %}
+ip name-server vrf MGMT {{ ns }} 
+{% endfor %}
+clock timezone {{ host['ntp']['timezone'] }}
+ntp server vrf MGMT {{ host['ntp']['ntp_server'] }}

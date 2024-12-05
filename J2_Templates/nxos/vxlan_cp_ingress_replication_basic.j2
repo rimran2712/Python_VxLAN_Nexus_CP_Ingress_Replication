@@ -1,0 +1,23 @@
+{# VxLAN Basic Configurtaion Template #}
+
+{# Enable Jumbo Frame on all Spine & Leaf, mtu size variy on diffrent platform#}
+system jumbomtu {{ host.common_vars.mtu }}
+{# Enable Underlay OSPF process on all Spine & Leaf Devices #}
+router ospf {{ host.dev_vars.ospf.proc_id }}
+router-id {{ host.dev_vars.ospf.rid }}
+
+{# VxLAN CP Basic Configuration #}
+{% if host.dev_vars.device_type == "leaf" %}
+{# There is a vMAC address on each switch for the Anycast Gateway #}
+{# This is the same on each switch.  #}
+{# Making this the same on each means that any switch can respond as the default gateway. #}
+fabric forwarding anycast-gateway-mac {{ host.common_vars.anycast_gw_mac_add }}
+{# Create VLANs and map L2 VNI to each VLAN if VLAN extended over VxLAN (at Leaf/VTEP Devices) #}
+{# We start with binding L2 VNI to VLAN. L2VNI then needs to be added to the VTEP.#}
+{% for vlan in host.dev_vars.vlans %}
+vlan {{ vlan.vlan_id }}
+{% if vlan.vni %}
+vn-segment {{ vlan.vni_id }}
+{% endif %}
+{% endfor %}
+{% endif %}

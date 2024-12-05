@@ -1,0 +1,82 @@
+---
+
+# L3 Interfaces for CE/PE/Core connectivity: 172.x.y.0/30
+# Device ID Details:
+# Device Name           Device ID 
+# HONDDA-DALLAS-CE      1
+# TOYYOTA-HOUSTON-CE    2
+# FORT-DALLAS-CE        3
+# PE1                   4
+# PE2                   5
+# CORE1                 6
+# CORE2                 7
+# CORE3                 8
+# CORE4                 9
+# PE3                   10
+# PE4                   11
+# PE5                   12
+# HONDDA-NYC-CE         13
+# FORT-BOSTON-CE        14
+# TOYYOTA-TOKYO-CE      15
+
+#loopback0: 10.x.1.1/32 (x: Device ID: 1)
+# P2P connectivity subnet: 172.x.y.z/24 (x: smalest device ID, y: Bigger device ID, z: local device ID)
+device_type: "pe"
+
+interfaces:
+    - name: lo0 #Used for OSPF RID, iBGP peers, MPLS LDP RID
+      ip: 10.5.1.1
+      mask: 255.255.255.255
+      int_type: "loopback"
+      ospf_area: 0
+    - name: Gi0/1 #Used for PE2-Core3
+      ip: 172.5.8.5
+      mask: 255.255.255.0
+      int_type: "core"
+      ospf_area: 0
+    - name: Gi0/2 #Used for PE2-Core1
+      ip: 172.5.6.5
+      mask: 255.255.255.0
+      int_type: "core"
+      ospf_area: 0
+    - name: Gi0/3 #Used for FORT-DALLAS-CE
+      ip: 172.3.5.5
+      mask: 255.255.255.0
+      int_type: "ce"
+      vrf_name: 'FORT'
+ospf:
+    rid: 10.5.1.1
+    proc_id: 127
+
+bgp:
+    localAsn: 100
+    routerId: 10.5.1.1
+    update_source: loopback0
+    route_reflector: False
+    neighbors:
+        - address: 10.6.1.1 #Route Reflector1
+          type: "iBGP"
+          remoteAsn: 100 
+        - address: 10.7.1.1 #Route Reflector2
+          type: "iBGP"
+          remoteAsn: 100
+# vrf HONDDA Custmer D: 1
+# vrf TOYYOTA Custmer D: 2
+# vrf FORT Custmer D: 3
+vrfs:
+    - name: 'FORT'
+      description: "vrf for FORT Customer"
+      rd: 100:3 # asn:custmer id
+      add_family_ipv4:
+          enable: True
+          rt_export:
+              - 100:3
+          rt_import: # we can import multiple Route tagged routes in Extranet (Route Leaking)
+              - 100:3
+      ce_pe_routing: 'eigrp'
+      # EIGTP ASN for FORT Dallas CE
+      eigrp:
+          asn: 200
+          networks:
+              - net: 172.3.5.0
+                wildcard: 0.0.0.255

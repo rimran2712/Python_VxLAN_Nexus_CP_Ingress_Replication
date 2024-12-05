@@ -1,0 +1,98 @@
+---
+
+device_type: "leaf"
+
+interfaces:
+    - name: lo0 #Used for OSPF RID & VTEP/VNI Tunnel Source Address
+      ip: 10.2.1.1
+      mask: 255.255.255.255
+      int_type: "loopback"
+      ospf_area: 0
+    - name: Eth1/1 # To SP-01
+      ip: 172.2.101.2
+      mask: 255.255.255.0
+      int_type: "layer3"
+      ospf_area: 0
+    - name: Eth1/2 # To SP-02
+      ip: 172.2.102.2
+      mask: 255.255.255.0
+      int_type: "layer3"
+      ospf_area: 0
+    - name: Eth1/3 # To SP-03
+      ip: 172.2.103.2
+      mask: 255.255.255.0
+      int_type: "layer3"
+      ospf_area: 0
+    - name: Eth1/10 # To vPC15-VLAN30 & VNI 10030 of Tenant XYZ
+      vlan_id: 30
+      int_type: "access"
+    - name: Eth1/11 # To vPC3-VLAN20 & VNI 10020 of Tenant ABC
+      vlan_id: 20
+      int_type: "access"
+    - name: nve1 # VTEP/NVE interface used to connect VxLAN overlay (VNI) with underlay
+      int_type: "vtep"
+      vtep_src: lo0
+      members:
+          - vni: 10020
+            mcast_group: 239.0.20.1
+ospf:
+    rid: 10.2.1.1
+    proc_id: 127
+bgp:
+    localAsn: 100
+    routerId: 10.2.1.1
+    update_source: loopback0
+    route_reflector: False
+    neighbors:
+        - address: 10.101.1.1 #SP01- Route Reflector1
+          type: "iBGP"
+          remoteAsn: 100 
+        - address: 10.102.1.1 #SP02- Route Reflector2
+          type: "iBGP"
+          remoteAsn: 100
+        - address: 10.103.1.1 #SP03- Route Reflector3
+          type: "iBGP"
+          remoteAsn: 100
+vrfs:
+    - name: 'ABC'
+      description: "Tenant1 for Customer ABC"
+      # VRF associate with an L3VNI. The L3VNI defines the tenant within the fabric, and contains L3 routes for the tenant.
+      l3_vni_id: 100101 # L3VNI allow routing on local switch and also attached to VRF
+      l3_vlan_id: 101
+      rd: 100:11 # asn:xy (x:custmer id, y:address family, e.g 1 used for ipv4, 2 used for evpn etc.)
+      add_family_ipv4:
+          enable: True
+          rt_both: 100:11
+          # RT for EVPN Routes
+          rt_evpn_both: 100:12
+    - name: 'XYZ'
+      description: "Tenant2 for Customer XYZ"
+      l3_vni_id: 100102 # L3VNI allow routing on local switch and also attached to VRF
+      l3_vlan_id: 102
+      rd: 100:21 # asn:xy (x:custmer id, y:address family)
+      add_family_ipv4:
+          enable: True
+          rt_both: 100:21
+          # RT for EVPN Routes
+          rt_evpn_both: 100:22  
+vlans:
+    # Tenant ABC Vlans & VNI
+    - vlan_id: 10
+      vni: True
+      vni_id: 10010 # L2VNI need to add to VTEP
+      tenant_name: 'ABC'
+      anycast_gw_ip: 172.16.10.1
+      anycast_gw_mask: 24
+    - vlan_id: 20 
+      vni: True
+      vni_id: 10020 # L2VNI need to add to VTEP
+      tenant_name: 'ABC'
+      anycast_gw_ip: 172.16.20.1
+      anycast_gw_mask: 24
+    # Tenant XYZ Vlans & VNI
+    - vlan_id: 30 
+      vni: True
+      vni_id: 10030 # L2VNI need to add to VTEP
+      tenant_name: 'XYZ'
+      anycast_gw_ip: 172.16.10.1
+      anycast_gw_mask: 24

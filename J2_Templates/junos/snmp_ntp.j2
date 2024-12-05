@@ -1,0 +1,19 @@
+{# JUNOS Configiguration Template #}
+
+{# Name Server Configuration#}
+{% for ns in host['nameservers'] %}
+set system name-server {{ ns }}
+{% endfor %}
+commit {# if we will not commit DNS, NTP Domain name could not be resolved in below NTP configuration#}
+
+{# SNMP Template Configuration #}
+set snmp community {{ host['snmp']['snmp_community'] }} authorization read-only
+set snmp location {{ host['snmp']['snmp_location'] }}
+set snmp contact {{ host['snmp']['snmp_contact'] }}
+set snmp community {{ host['snmp']['snmp_community'] }} clients {{ host['snmp']['snmp_server'] }}
+set snmp trap-group MyTrapGroup targets {{ host['snmp']['snmp_server'] }}
+set snmp trap-group MyTrapGroup categories link
+
+{# NTP Template Configuration #}
+set system time-zone {{ host['ntp']['timezone_cc'] }}
+set system ntp server {{ host['ntp']['ntp_server'] }} prefer

@@ -1,0 +1,14 @@
+---
+
+cisco_group:
+    platform: "ios"
+
+arista_group:
+    platform: "eos"
+    
+juniper_group:
+    platform: "junos"
+
+nexus_group:
+    platform: "nxos"
+    #platform: "nxos_ssh"

@@ -1,0 +1,37 @@
+{# Tenant/VRF level configuration NXOS Devices#}
+
+{% for vrf in host.dev_vars.vrfs %}
+vrf context {{ vrf.name }}
+description {{ vrf.description }}
+vni {{ vrf.l3_vni_id }}
+rd {{vrf.rd }}
+{% if vrf.add_family_ipv4.enable == True %}
+address-family ipv4 unicast
+route-target both {{ vrf.add_family_ipv4.rt_both }}
+route-target both {{ vrf.add_family_ipv4.rt_evpn_both }} evpn
+exit
+{% endif %}
+exit
+{#The L3VNI needs an SVI to be created on each switch. SVI’s are based on VLAN, so we need to associate L3VNI with VLAN first.#}
+{# Creating VLAN for L3VNI which will be also L3VNI's SVI#}
+vlan {{ vrf.l3_vlan_id }}
+vn-segment {{ vrf.l3_vni_id }}
+exit
+{#The SVI then needs to be created and associated with the tenant’s VRF. The SVI and VRF represent the tenant’s routing boundary.#}
+int vlan {{ vrf.l3_vlan_id }}
+no shutdown
+vrf member {{ vrf.name }}
+{#The ip forward command is added to the SVI. This command enables routing. Technically, it enables the switch to take the decapsulated VxLAN packet, and forward it to the CPU or Supervisor for handling.#}
+ip forward
+exit
+
+{#In BGP, we need to add the Tenant’s VRF. #}
+{#Inside this, we use the advertise l2vpn evpn command. #}
+{#This enables advertising EVPN routes (MAC addresses) within the tenant.#}
+router bgp {{ host.dev_vars.bgp.localAsn }}
+vrf {{ vrf.name }}
+address-family ipv4 unicast
+advertise l2vpn evpn
+exit
+exit
+{% endfor %}

@@ -1,0 +1,88 @@
+---
+
+# L3 Interfaces for CE/PE/Core connectivity: 172.x.y.0/30
+# Device ID Details:
+# Device Name           Device ID 
+# HONDDA-DALLAS-CE      1
+# TOYYOTA-HOUSTON-CE    2
+# FORT-DALLAS-CE        3
+# PE1                   4
+# PE2                   5
+# CORE1                 6
+# CORE2                 7
+# CORE3                 8
+# CORE4                 9
+# PE3                   10
+# PE4                   11
+# PE5                   12
+# HONDDA-NYC-CE         13
+# FORT-BOSTON-CE        14
+# TOYYOTA-TOKYO-CE      15
+
+#loopback0: 10.x.1.1/32 (x: Device ID: 1)
+# P2P connectivity subnet: 172.x.y.z/24 (x: smalest device ID, y: Bigger device ID, z: local device ID)
+device_type: "core-rr"
+
+interfaces:
+    - name: lo0 #Used for OSPF RID, iBGP peers, MPLS LDP RID
+      ip: 10.7.1.1
+      mask: 255.255.255.255
+      int_type: "loopback"
+      ospf_area: 0
+    - name: Gi0/1 #Used for Core4-Core2
+      ip: 172.7.9.7
+      mask: 255.255.255.0
+      int_type: "core"
+      ospf_area: 0
+    - name: Gi0/2 #Used for PE3-Core2
+      ip: 172.5.10.7
+      mask: 255.255.255.0
+      int_type: "core"
+      ospf_area: 0
+    - name: Gi0/3 #Used for Core2-PE4
+      ip: 172.7.11.7
+      mask: 255.255.255.0
+      int_type: "core"
+      ospf_area: 0
+    - name: Gi0/4 #Used for Core2-Core1
+      ip: 172.6.7.7
+      mask: 255.255.255.0
+      int_type: "core"
+      ospf_area: 0
+    - name: Gi0/5 #Used for Core2-Core3
+      ip: 172.7.8.7
+      mask: 255.255.255.0
+      int_type: "core"
+      ospf_area: 0
+    - name: Gi0/6 #Used for Core2-PE5
+      ip: 172.7.12.7
+      mask: 255.255.255.0
+      int_type: "core"
+      ospf_area: 0
+
+ospf:
+    rid: 10.7.1.1
+    proc_id: 127
+
+bgp:
+    localAsn: 100
+    routerId: 10.7.1.1
+    update_source: loopback0
+    route_reflector: True
+    peer_group_name: "MyPeerGroup"
+    neighbors:
+        - address: 10.4.1.1 #PE1
+          type: "iBGP"
+          remoteAsn: 100 
+        - address: 10.5.1.1 #PE2
+          type: "iBGP"
+          remoteAsn: 100
+        - address: 10.10.1.1 #PE3
+          type: "iBGP"
+          remoteAsn: 100 
+        - address: 10.11.1.1 #PE4
+          type: "iBGP"
+          remoteAsn: 100
+        - address: 10.12.1.1 #PE5
+          type: "iBGP"
+          remoteAsn: 100

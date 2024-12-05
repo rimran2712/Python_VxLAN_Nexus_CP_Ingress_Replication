@@ -1,0 +1,10 @@
+{# IOS IP Addresses Configiguration Template #}
+
+{% for int in host['interfaces'] %}
+{% set int_name = int['name'] %}
+{% set int_ip = int['ip'] %}
+{% set int_mask = int['mask'] %}
+interface {{ int_name }}
+ip address {{ int_ip }} {{ int_mask }} 
+no shut
+{% endfor %}

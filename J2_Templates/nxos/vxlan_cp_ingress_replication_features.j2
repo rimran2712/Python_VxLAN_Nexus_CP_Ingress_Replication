@@ -1,0 +1,13 @@
+{# VxLAN CP Ingress Replication Features Template #}
+{# Enable Features OSPF, BGP, VxLAN/VTEP on all Spine & Leaf #}
+feature ospf
+feature bgp
+nv overlay evpn {# support BGP EVPN address family#}
+
+{% if host.dev_vars.device_type == "leaf" %}
+{# Enable VxLAN to create NVE interfac & VNI to VLAN mapping only at Leaf/VTEP#}
+feature nv overlay
+feature vn-segment-vlan-based
+
+feature interface-vlan {# is used to create a virtual interface based on a VLAN, We use this to create the anycast gateway IP for the VNI, and to tie VNI’s to a tenant’s VRF. #}
+{% endif %}

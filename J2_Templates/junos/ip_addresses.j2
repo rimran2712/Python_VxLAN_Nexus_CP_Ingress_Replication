@@ -1,0 +1,9 @@
+{# JUNOS IP Addresses Configiguration Template #}
+
+{% for int in host['interfaces'] %}
+{% set int_name = int['name'] %}
+{% set int_ip = int['ip'] %}
+{% set int_mask = int['mask'] %}
+set interfaces {{ int_name }} unit 0 family inet address {{ int_ip }}/{{ int_mask }}
+{% endfor %}
+commit

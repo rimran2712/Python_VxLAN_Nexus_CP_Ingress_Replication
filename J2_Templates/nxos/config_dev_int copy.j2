@@ -1,0 +1,34 @@
+{# NXOS Device IP Addresses Configiguration Template #}
+{% for int in host.dev_vars.interfaces %}
+{% set int_name = int.name %}
+{% set int_ip = int.ip %}
+{% set int_mask = int.mask %}
+{% set ospf_area = int.ospf_area %}
+{% set int_type = int.int_type %}
+interface {{ int_name }}
+{% if int_type ==  "layer3"%}
+no switchport
+{% endif %}
+{% if int_type ==  "layer3" or int_type == "loopback" %}
+ip address {{ int_ip }} {{ int_mask }}
+ip pim sparse-mode
+ip router ospf {{ host.dev_vars.ospf.proc_id }} area  {{ ospf_area }}
+no shut
+{% elif int_type ==  "access" %}
+switchport
+switchport mode access
+switchport access vlan {{ int.vlan_id }} 
+no shut
+{% elif int_type ==  "trunk" %}
+switchport
+switchport mode trunk
+switchport trunk allowed vlan {{ int.allowed_vlan }} 
+no shut
+{% elif int_type ==  "vtep" %}
+source-interface {{ int.vtep_src }}
+{% for member in int.members %}
+member vni {{ member.vni }} mcast-group {{ member.mcast_group }}
+{% endfor %}
+no shut
+{% endif %}
+{% endfor %}

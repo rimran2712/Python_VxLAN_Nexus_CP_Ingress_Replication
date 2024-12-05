@@ -1,0 +1,18 @@
+{# NXOS Devices EVPN Configuration Template #}
+
+
+
+{# EVPN will be create only at Leaf device #}
+{% if host.dev_vars.device_type == "leaf" %}
+{# In EVPN configuration, each L2VNI needs to have an RD and RT’s assigned.#}
+evpn
+{% for vlan in host.dev_vars.vlans %}
+{% if vlan.vni %}
+vni {{ vlan.vni_id }} l2
+rd auto
+route-target import auto
+route-target export auto
+exit
+{% endif %}
+{% endfor %}
+{% endif %}

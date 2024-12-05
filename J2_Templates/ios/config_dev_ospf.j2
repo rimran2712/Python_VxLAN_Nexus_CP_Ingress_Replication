@@ -1,0 +1,12 @@
+{# IOS Device OSPF Configiguration Template #}
+
+ip routing
+router ospf {{ host.dev_vars.ospf.proc_id }}
+router-id {{ host.dev_vars.ospf.rid }}
+{% for network in host.dev_vars.ospf.networks %}
+{% set net = network['net'] %}
+{% set wildcard = network['wildcard'] %}
+{% set area_id = network['area'] %}
+network {{ net }} {{ wildcard }} area {{ area_id }}
+{% endfor %}
+

@@ -1,0 +1,65 @@
+---
+
+# L3 Interfaces for CE/PE/Core connectivity: 172.x.y.0/30
+# Device ID Details:
+# Device Name           Device ID 
+# HONDDA-DALLAS-CE      1
+# TOYYOTA-HOUSTON-CE    2
+# FORT-DALLAS-CE        3
+# PE1                   4
+# PE2                   5
+# CORE1                 6
+# CORE2                 7
+# CORE3                 8
+# CORE4                 9
+# PE3                   10
+# PE4                   11
+# PE5                   12
+# HONDDA-NYC-CE         13
+# FORT-BOSTON-CE        14
+# TOYYOTA-TOKYO-CE      15
+
+#loopback0: 10.x.1.1/32 (x: Device ID: 1)
+# P2P connectivity subnet: 172.x.y.z/24 (x: smalest device ID, y: Bigger device ID, z: local device ID)
+device_type: "core"
+
+interfaces:
+    - name: lo0 #Used for OSPF RID, iBGP peers, MPLS LDP RID
+      ip: 10.9.1.1
+      mask: 255.255.255.255
+      int_type: "loopback"
+      ospf_area: 0
+    - name: Gi0/1 #Used for Core4-Core2
+      ip: 172.7.9.9
+      mask: 255.255.255.0
+      int_type: "core"
+      ospf_area: 0
+    - name: Gi0/2 #Used for PE4-Core4
+      ip: 172.9.11.9
+      mask: 255.255.255.0
+      int_type: "core"
+      ospf_area: 0
+    - name: Gi0/3 #Used for Core4-PE3
+      ip: 172.9.10.9
+      mask: 255.255.255.0
+      int_type: "core"
+      ospf_area: 0
+    - name: Gi0/4 #Used for Core3-Core4
+      ip: 172.8.9.9
+      mask: 255.255.255.0
+      int_type: "core"
+      ospf_area: 0
+    - name: Gi0/5 #Used for Core1-Core4
+      ip: 172.6.9.9
+      mask: 255.255.255.0
+      int_type: "core"
+      ospf_area: 0
+    - name: Gi0/6 #Used for Core4-PE5
+      ip: 172.9.12.9
+      mask: 255.255.255.0
+      int_type: "core"
+      ospf_area: 0
+
+ospf:
+    rid: 10.9.1.1
+    proc_id: 127

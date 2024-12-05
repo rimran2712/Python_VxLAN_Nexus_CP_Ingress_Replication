@@ -1,0 +1,17 @@
+---
+
+#MTU size being used for Jumboframes
+#mtu: 9216
+
+mpls:
+    label_protocol: 'ldp'
+    RID: 'lo0'
+
+#Multicast configuration
+#multicast:
+#   rp_anycast_ip: 10.10.10.10 # RP Logical/Virtual anycast address, must be same on all RP devices
+#   rp_ip_addresses: # List of RP's Physical IP addresses. Each device will have unique loopback ip 
+#       - "10.1.1.2"
+#       - "10.2.1.2"
+#   mcast_group_range: 224.0.0.0/4 #RP will server broad multicast group range, It will be RP of this broad range mcast subnet
+   

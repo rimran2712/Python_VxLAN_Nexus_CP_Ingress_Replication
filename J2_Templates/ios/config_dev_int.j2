@@ -1,0 +1,22 @@
+{# IOS Devices Interface Level Configuiration Template #}
+{% for int in host.dev_vars.interfaces %}
+{% set int_name = int.name %}
+{% set int_ip = int.ip %}
+{% set int_mask = int.mask %}
+{% set ospf_area = int.ospf_area %}
+{% set int_type = int.int_type %}
+interface {{ int_name }}
+{% if int_type ==  "layer3" or int_type == "loopback" or int_type ==  "core"%}
+ip address {{ int_ip }} {{ int_mask }}
+ip ospf {{ host.dev_vars.ospf.proc_id }} area {{ ospf_area }}
+no shut
+{% endif %}
+{% if int_type ==  "core"%}
+mpls ip
+{% endif %}
+{% if int_type ==  "ce"%}
+vrf forwarding {{ int.vrf_name}}
+ip address {{ int_ip }} {{ int_mask }}
+no shut
+{% endif %}
+{% endfor %}

@@ -1,0 +1,11 @@
+{# Arista EOS IP Addresses Configiguration Template #}
+
+ip routing
+router ospf {{ host['ospf']['proc_id'] }}
+router-id {{ host['ospf']['rid'] }}
+{% for network in host['ospf']['networks'] %}
+{% set net = network['net'] %}
+{% set wildcard = network['wildcard'] %}
+{% set area_id = network['area'] %}
+network {{ net }} {{ wildcard }} area {{ area_id }}
+{% endfor %}

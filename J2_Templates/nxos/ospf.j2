@@ -1,0 +1,11 @@
+{# NXOS IP Addresses Configiguration Template #}
+feature ospf
+
+router ospf {{ host['ospf']['proc_id'] }}
+router-id {{ host['ospf']['rid'] }}
+{% for int in host['interfaces'] %}
+{% set int_name = int['name'] %}
+{% set ospf_area_id = int['ospf_area'] %}
+interface {{ int_name }}
+ip router ospf {{ host['ospf']['proc_id'] }} area {{ ospf_area_id }}
+{% endfor %}

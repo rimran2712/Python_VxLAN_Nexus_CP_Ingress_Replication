@@ -1,0 +1,8 @@
+{# MPLS Configurtaion on all ISP devices #}
+mpls label protocol {{ host.common_vars.mpls.label_protocol }}
+mpls ldp router-id {{ host.common_vars.mpls.RID }}
+
+{# Enable IGP/OSPF to distibute LDP labels on all ISP devices #}
+ip routing
+router ospf {{ host.dev_vars.ospf.proc_id }}
+router-id {{ host.dev_vars.ospf.rid }}

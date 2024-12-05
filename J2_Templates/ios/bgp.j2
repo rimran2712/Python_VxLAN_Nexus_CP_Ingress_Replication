@@ -1,0 +1,38 @@
+{# BGP Configiguration Template for IOS Devices#}
+{# We will run BGP only for PE Routers and also two Core routers running as Route reflectors#}
+ip routing
+router bgp {{ host.dev_vars.bgp.localAsn }}
+bgp router-id {{ host.dev_vars.bgp.routerId }}
+{% if host.dev_vars.bgp.route_reflector %}
+{#
+neighbor {{ host.dev_vars.bgp.peer_group_name }} peer-group
+neighbor {{ host.dev_vars.bgp.peer_group_name }} remote-as {{ host.dev_vars.bgp.localAsn }}
+neighbor {{ host.dev_vars.bgp.peer_group_name }} update-source {{ host.dev_vars.bgp.update_source }}
+neighbor {{ host.dev_vars.bgp.peer_group_name }} route-reflector-client
+
+neighbor {{ nbr.address }} peer-group {{ host.dev_vars.bgp.peer_group_name }}
+#}
+{% for nbr in host.dev_vars.bgp.neighbors %}
+neighbor {{ nbr.address }} remote-as {{ host.dev_vars.bgp.localAsn }}
+neighbor {{ nbr.address }} update-source {{ host.dev_vars.bgp.update_source }}
+neighbor {{ nbr.address }} route-reflector-client
+address-family vpnv4
+neighbor {{ nbr.address }} activate
+neighbor {{ nbr.address }} route-reflector-client
+exit-address-family
+{% endfor %}
+{% endif %}
+
+{% if host.dev_vars.bgp.route_reflector == False %}
+{% for nbr in host.dev_vars.bgp.neighbors %}
+{% if nbr.type == "iBGP" %}
+neighbor {{ nbr.address }} remote-as {{ host.dev_vars.bgp.localAsn }}
+neighbor {{ nbr.address }} update-source {{ host.dev_vars.bgp.update_source }}
+address-family vpnv4
+neighbor {{ nbr.address }} activate
+exit-address-family
+{% elif nbr.type == "eBGP" %}
+neighbor {{ nbr.address }} remote-as {{ host.dev_vars.bgp.remoteAsn }}
+{% endif %}
+{% endfor %}
+{% endif %}

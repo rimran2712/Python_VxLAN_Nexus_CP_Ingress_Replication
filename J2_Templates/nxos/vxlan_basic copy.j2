@@ -1,0 +1,40 @@
+{# VxLAN Basic Configurtaion Template #}
+{# Enable Features multiCast and OSPF, BGP on all Spine & Leaf #}
+feature ospf
+feature bgp
+{# PIM required only if we are using multicast for BUM traffic, since we are using Ingress replication so not required for this lab 
+feature pim
+#}
+
+{% if host.dev_vars.device_type == "leaf" %}
+{# Enable VxLAN to create NVE interfac & VNI to VLAN mapping only at Leaf/VTEP#}
+feature nv overlay
+feature vn-segment-vlan-based
+feature interface-vlan {# create SVI & also allow anycast GW VLAN#}
+nv overlay evpn {# support BGP EVPN address family#}
+{#
+{# Create VLANs and map VNI to each VLAN if VLAN extended over VxLAN (at Leaf/VTEP Devices) #}
+{% for vlan in host.dev_vars.vlans %}
+vlan {{ vlan.vlan_id }}
+{% if vlan.vni %}
+vn-segment {{ vlan.vni_id }}
+{% endif %}
+{% endfor %}
+#}
+{% endif %}
+{# Enable Jumbo Frame on all Spine & Leaf, mtu size variy on diffrent platform#}
+system jumbomtu {{ host.common_vars.mtu }}
+{# Enable Underlay OSPF process on all Spine & Leaf Devices #}
+router ospf {{ host.dev_vars.ospf.proc_id }}
+router-id {{ host.dev_vars.ospf.rid }}
+{#
+{# Configure RP-Rendezcous point for broad address range using all Spine/Leaf Devices #}
+ip pim rp-address {{ host.common_vars.multicast.rp_anycast_ip }} group-list {{ host.common_vars.multicast.mcast_group_range }}
+
+{# We will configure RP anycast only at spine devices, Spine device will act as RP#}
+{% if host.dev_vars.device_type == "spine" %}
+{% for rp_add in host.common_vars.multicast.rp_ip_addresses %}
+ip pim anycast-rp {{ host.common_vars.multicast.rp_anycast_ip }} {{ rp_add }}
+{% endfor %}
+{% endif %}
+#}

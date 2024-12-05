@@ -1,0 +1,53 @@
+---
+# L3 Interfaces for CE/PE/Core connectivity: 172.x.y.0/30
+# Device ID Details:
+# Device Name           Device ID 
+# HONDDA-DALLAS-CE      1
+# TOYYOTA-HOUSTON-CE    2
+# FORT-DALLAS-CE        3
+# PE1                   4
+# PE2                   5
+# CORE1                 6
+# CORE2                 7
+# CORE3                 8
+# CORE4                 9
+# PE3                   10
+# PE4                   11
+# PE5                   12
+# HONDDA-NYC-CE         13
+# FORT-BOSTON-CE        14
+# TOYYOTA-TOKYO-CE      15
+
+interfaces:
+    - name: lo0 #Used for OSPF RID, iBGP Peering, LDP Router ID
+      ip: 10.1.1.1
+      mask: 255.255.255.255
+      int_type: "loopback"
+    - name: Gi0/1
+      ip: 10.1.5.1
+      mask: 255.255.255.0
+    - name: Gi0/2
+      ip: 10.1.6.1
+      mask: 255.255.255.0
+
+bgp:
+    localAsn: 65001
+    routerId: 1.1.1.1
+    update_source: loopback0
+    route_reflector: False
+    neighbors:
+        - 2.2.2.2
+        - 3.3.3.3
+ospf:
+    rid: 1.1.1.1
+    proc_id: 127
+    networks:
+        - net: 1.1.1.1
+          wildcard: 0.0.0.0
+          area: 0
+        - net: 10.1.5.0
+          wildcard: 0.0.0.255
+          area: 0
+        - net: 10.1.6.0
+          wildcard: 0.0.0.255
+          area: 0

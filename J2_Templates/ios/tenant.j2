@@ -1,0 +1,62 @@
+{# Tenant/VRF level configuration IOS Devices#}
+
+{% for vrf in host.dev_vars.vrfs %}
+vrf definition {{ vrf.name }}
+description {{ vrf.description }}
+rd {{vrf.rd }}
+{% if vrf.add_family_ipv4.enable == True %}
+address-family ipv4
+{% for rt_export in vrf.add_family_ipv4.rt_export %}
+route-target export {{ rt_export }}
+{% endfor %}
+{% for rt_import in vrf.add_family_ipv4.rt_import %}
+route-target import {{ rt_import }}
+{% endfor %}
+exit-address-family
+{% endif %}
+exit
+{% if vrf.ce_pe_routing == 'ospf' %}
+router ospf {{ vrf.ospf.proc_id }} vrf {{ vrf.name }}
+redistribute bgp {{ host.dev_vars.bgp.localAsn }} subnets
+{% for net in vrf.ospf.networks  %}
+network {{ net.net }} {{ net.wildcard }} area  {{ net.area }}
+{% endfor %}
+router bgp {{ host.dev_vars.bgp.localAsn }}
+address-family ipv4 vrf {{ vrf.name }}
+redistribute ospf {{ vrf.ospf.proc_id }} vrf {{ vrf.name }}
+exit
+{% elif vrf.ce_pe_routing == 'bgp' %}
+ip routing
+router bgp {{ host.dev_vars.bgp.localAsn }}
+address-family ipv4 vrf {{ vrf.name }}
+{% for nbr in vrf.bgp.neighbors %}
+{% if nbr.type == "eBGP" %}
+neighbor {{ nbr.address }} remote-as {{ nbr.remoteAsn }}
+neighbor {{ nbr.address }} as-override
+{% endif %}
+{% endfor %}
+{% elif vrf.ce_pe_routing == 'eigrp' %}
+router eigrp {{ vrf.eigrp.asn }}
+address-family ipv4 vrf {{ vrf.name }} autonomous-system {{ vrf.eigrp.asn }}
+no auto-summary
+redistribute bgp {{ host.dev_vars.bgp.localAsn }} metric 100 100 255 1 1500
+{% for net in vrf.eigrp.networks  %}
+network {{ net.net }} {{ net.wildcard }}
+{% endfor %}
+router bgp {{ host.dev_vars.bgp.localAsn }}
+address-family ipv4 vrf {{ vrf.name }}
+redistribute eigrp {{ vrf.eigrp.asn }}
+{% elif vrf.ce_pe_routing == 'rip' %}
+router rip
+address-family ipv4 vrf {{ vrf.name }}
+no auto-summary
+version 2
+redistribute bgp {{ host.dev_vars.bgp.localAsn }} metric 1
+{% for net in vrf.rip.networks  %}
+network {{ net.net }}
+{% endfor %}
+router bgp {{ host.dev_vars.bgp.localAsn }}
+address-family ipv4 vrf {{ vrf.name }}
+redistribute rip
+{% endif %}
+{% endfor %}
